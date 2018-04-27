@@ -1,3 +1,22 @@
+#========================================================================================
+#  vRA-Automated-Install.ps1
+#  Author:  Justin Snyder
+#  Website: https://www.ltx.systems/
+#  Date:    04/27/2018
+#  Purpose: This script has the core logic for an automated minimal configuration deployment
+#           of vRA.  This script can be used for 7.2, 7.3, or 7.4.  
+#           The script must copy a Management agent installer script to the IaaS Server.
+#           The version of the management agent installer script varies from 7.2/7.3 to
+#           7.4.  Be sure to use the right version of that script.
+#  Use:     Place the main script, deploymentVariables-XXX.ps1 script, and the 
+#           InstallManagementAgent.ps1 script into the same directory.  Connect-VIServer to the 
+#           vCenter Server where deployment will occur, and run the vRA-Automated-Install.ps1
+#           script.  Some Items relating to prompts can be configured below to make this 
+#           interactive or silent.
+#========================================================================================
+
+#============Configurable Items=================
+
 #if false, won't prompt for any values
 $PromptForParams = $false
 
@@ -5,7 +24,7 @@ $PromptForParams = $false
 $PromptIfAlreadySet = $false
 
 #if true, will always prompt for passwords and ignore values, even if $PromptForParams is false
-$AlwaysPromptForPasswords = $false #$true
+$AlwaysPromptForPasswords = $false
 
 #-------------- Includes ------------------
 #-- Change this file for configurable 
@@ -20,7 +39,7 @@ $AlwaysPromptForPasswords = $false #$true
 
 
 
-
+#==================Non-Configurable====================
 
 # -------------------------------------
 # ---  DO NOT EDIT BELOW THIS POINT ---
@@ -32,11 +51,6 @@ $vraVAVM = $null
 
 #files to copy to IaaS Guest
 $iaasFiles = @(
-    #"dotnet452.exe", 
-    #"dotnetfx35.exe", 
-    #"javajre18.exe", 
-    #"ntrights.exe", 
-    #"vra-prereqs.ps1", 
     "InstallManagementAgent.ps1")
 
 
@@ -246,8 +260,6 @@ function Deploy-IaaSVM
     $network = $ScriptVariables.Get_Item("IaaSVMNetwork")
     $snapshotName = $ScriptVariables.Get_Item("IaasVMSnapshotToClone")
 
-    #$snapshot = Get-VM $vmToCloneName | Get-Snapshot -Name $snapshotName
-
     try 
     {
         $existingSpec = Get-OSCustomizationSpec -Name IaaSSpec-unique-name
@@ -371,9 +383,7 @@ function Run-IaaSPrereqs
     {
         Write-Output "     $f"
         Copy-VMGuestFile -Source $f -Destination "C:\temp\" -LocalToGuest -VM $iaasVM -GuestUser $username -GuestPassword $password -Force
-        #if($f -eq "vra-prereqs.ps1") {
-        #    Copy-VMGuestFile -Source $f -Destination "C:\temp\" -LocalToGuest -VM $iaasVM -GuestUser $username -GuestPassword $password -Force
-        #}
+        
     }
         
     Write-Output "Changing Execution Policy"
@@ -386,10 +396,6 @@ function Run-IaaSPrereqs
     Write-Output "Disabling Authentication Loopback Check"
     Invoke-VMScript -VM $iaasVM -ScriptText "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe New-ItemProperty HKLM:\System\CurrentControlSet\Control\Lsa -Name 'DisableLoopbackCheck' -Value '1' -PropertyType dword" -GuestUser $username -GuestPassword $password 
     
-
-    #Write-Output "Running Prereq Script"
-    #Invoke-VMScript -VM $iaasVM -ScriptText "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe C:\temp\vra-prereqs.ps1" -GuestUser $username -GuestPassword $password 
-
     Write-Output "Installing vRA Management Agent"
     Invoke-VMScript -VM $iaasVM -ScriptText "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe C:\temp\InstallManagementAgent.ps1 https://${vraVAHostname}:5480 $serviceUser $servicePass $vraVARootPass" -GuestUser $username -GuestPassword $password 
 
