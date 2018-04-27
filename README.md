@@ -1,7 +1,7 @@
 # vRA-Automation
 Scripts and code relating to the automation of VMware vRealize Automation
 
-#Automated Installation of vRA 7.2, 7.3, and 7.4
+# Automated Installation of vRA 7.2, 7.3, and 7.4
 The vRA-Automation/Automated Install directory contains all the artifacts necessary to perform an automated install of a minimal configuration of any of the above stated versions of vRA.
 
 To perform the install, copy all files locally to the same directory.  For vRA 7.2 and 7.3, remove the InstallManagementAgent.ps1 script and replace it by renaming the InstallManagementAgent-72-73.ps1 to InstallManagementAgent.ps1.  
